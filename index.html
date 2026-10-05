@@ -1,0 +1,93 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noai, noimageai">
+<title>Protected page</title>
+<style>
+  :root { --plane:#f9f9f7; --surface:#fcfcfb; --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
+          --border:rgba(11,11,11,.12); --accent:#1baf7a; --bad:#c2410c; color-scheme:light; }
+  @media (prefers-color-scheme: dark) { :root { --plane:#0d0d0d; --surface:#1a1a19; --ink:#fff; --ink-2:#c3c2b7;
+          --border:rgba(255,255,255,.12); --accent:#1fc98d; --bad:#fb923c; color-scheme:dark; } }
+  body { margin:0; background:var(--plane); color:var(--ink); font:15px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  .wrap { max-width:440px; margin:12vh auto 0; padding:0 20px; }
+  form { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:24px; }
+  h1 { font-size:18px; margin:0 0 6px; }  p { color:var(--ink-2); margin:0 0 16px; font-size:14px; }
+  input { width:100%; box-sizing:border-box; font:inherit; padding:9px 11px; border:1px solid var(--border);
+          border-radius:7px; background:var(--plane); color:var(--ink); }
+  button { margin-top:12px; font:inherit; font-weight:600; padding:8px 16px; border:0; border-radius:7px;
+           background:var(--accent); color:#fff; cursor:pointer; }
+  #err { color:var(--bad); font-size:13px; min-height:1.2em; margin-top:10px; }
+  details { margin-top:22px; color:var(--muted); font-size:12.5px; }
+  pre { white-space:pre-wrap; word-break:break-all; font-size:12px; }
+</style>
+<div class="wrap">
+  <form id="f">
+    <h1>Password required</h1>
+    <p>This page is encrypted. Enter the password to view it.</p>
+    <input id="pw" type="password" autocomplete="current-password" aria-label="Password" autofocus>
+    <button type="submit">Open</button>
+    <div id="err" role="alert"></div>
+  </form>
+  <details>
+    <summary>Decrypting without a browser</summary>
+    <pre>Format: AES-256-GCM. key = PBKDF2-HMAC-SHA256(password_utf8, base64decode(salt), 600000 iterations, 32 bytes).
+plaintext = AESGCM(key).decrypt(base64decode(iv), base64decode(ct), None)   (ct includes the 16-byte tag)
+salt, iv, ct and iter are in the JSON of the LAST &lt;script type=&quot;application/json&quot; id=&quot;payload&quot;&gt; element of the page.
+
+Python:
+  import base64, hashlib, json
+  from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+  d = json.loads(page_html.rsplit(&#x27;id=&quot;payload&quot;&gt;&#x27;, 1)[1].split(&#x27;&lt;/script&gt;&#x27;, 1)[0])
+  b = base64.b64decode
+  key = hashlib.pbkdf2_hmac(&quot;sha256&quot;, PASSWORD.encode(), b(d[&quot;salt&quot;]), d[&quot;iter&quot;], 32)
+  print(AESGCM(key).decrypt(b(d[&quot;iv&quot;]), b(d[&quot;ct&quot;]), None).decode())
+
+A link of the form  page.html#pw=PASSWORD  opens the page directly in a browser.</pre>
+  </details>
+</div>
+<script type="application/json" id="payload">{"v": 1, "iter": 600000, "salt": "KY50nBj2d4uXj8PvZXI3Ag==", "iv": "6ez93Od7RhvYoFAF", "ct": "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"}</script>
+<script>
+(async () => {
+  const d = JSON.parse(document.getElementById("payload").textContent);
+  const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  const KEY = "site-key:" + d.salt;
+  const store = {
+    get() { try { return localStorage.getItem(KEY); } catch (e) { return null; } },
+    set(v) { try { localStorage.setItem(KEY, v); } catch (e) {} },
+    del() { try { localStorage.removeItem(KEY); } catch (e) {} },
+  };
+  async function derive(pw) {
+    const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pw), "PBKDF2", false, ["deriveBits"]);
+    const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt: b64(d.salt), iterations: d.iter }, base, 256);
+    return new Uint8Array(bits);
+  }
+  async function open(raw) {
+    const key = await crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["decrypt"]);
+    const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64(d.iv) }, key, b64(d.ct));
+    const text = new TextDecoder().decode(pt);
+    document.open(); document.write(text); document.close();
+  }
+  const toB64 = u => btoa(String.fromCharCode(...u));
+  async function tryPw(pw) {
+    const raw = await derive(pw);
+    await open(raw);            // throws on a wrong password
+    store.set(toB64(raw));
+  }
+  // 1. password in the link (#pw=...): use it, then drop it from the address bar
+  const m = location.hash.match(/^#pw=(.+)$/);
+  if (m) {
+    history.replaceState(null, "", location.pathname + location.search);
+    try { await tryPw(decodeURIComponent(m[1])); return; } catch (e) {}
+  }
+  // 2. key cached by an earlier page of this site
+  const cached = store.get();
+  if (cached) { try { await open(b64(cached)); return; } catch (e) { store.del(); } }
+  // 3. ask
+  const f = document.getElementById("f"), err = document.getElementById("err");
+  f.addEventListener("submit", async ev => {
+    ev.preventDefault(); err.textContent = "Checking…";
+    try { await tryPw(document.getElementById("pw").value); }
+    catch (e) { err.textContent = "Wrong password."; }
+  });
+})();
+</script>
